@@ -469,6 +469,7 @@ class AutoShape(nn.Module):
     classes = None  # (optional list) filter by class, i.e. = [0, 15, 16] for COCO persons, cats and dogs
     max_det = 1000  # maximum number of detections per image
     amp = False  # Automatic Mixed Precision (AMP) inference
+    hide_conf = True # Hide confidence labels on inference
 
     def __init__(self, model):
         super().__init__()
@@ -578,7 +579,7 @@ class Detections:
                 if show or save or render or crop:
                     annotator = Annotator(im, example=str(self.names))
                     for *box, conf, cls in reversed(pred):  # xyxy, confidence, class
-                        label = f'{self.names[int(cls)]} {conf:.2f}'
+                        label = None if hide_conf else f'{self.names[int(cls)]} {conf:.2f}'
                         if crop:
                             file = save_dir / 'crops' / self.names[int(cls)] / self.files[i] if save else None
                             crops.append({'box': box, 'conf': conf, 'cls': cls, 'label': label,
