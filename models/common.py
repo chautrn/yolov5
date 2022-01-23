@@ -546,12 +546,12 @@ class AutoShape(nn.Module):
                 scale_coords(shape1, y[i][:, :4], shape0[i])
 
             t.append(time_sync())
-            return Detections(imgs, y, files, t, self.names, x.shape)
+            return Detections(imgs, y, files, t, self.names, x.shape, hide_conf)
 
 
 class Detections:
     # YOLOv5 detections class for inference results
-    def __init__(self, imgs, pred, files, times=(0, 0, 0, 0), names=None, shape=None):
+    def __init__(self, imgs, pred, files, times=(0, 0, 0, 0), names=None, shape=None, hide_conf=True):
         super().__init__()
         d = pred[0].device  # device
         gn = [torch.tensor([*(im.shape[i] for i in [1, 0, 1, 0]), 1, 1], device=d) for im in imgs]  # normalizations
@@ -567,6 +567,7 @@ class Detections:
         self.n = len(self.pred)  # number of images (batch size)
         self.t = tuple((times[i + 1] - times[i]) * 1000 / self.n for i in range(3))  # timestamps (ms)
         self.s = shape  # inference BCHW shape
+        self.hide_conf = hide_conf
 
     def display(self, pprint=False, show=False, save=False, crop=False, render=False, save_dir=Path('')):
         crops = []
@@ -579,7 +580,7 @@ class Detections:
                 if show or save or render or crop:
                     annotator = Annotator(im, example=str(self.names))
                     for *box, conf, cls in reversed(pred):  # xyxy, confidence, class
-                        label = None if hide_conf else f'{self.names[int(cls)]} {conf:.2f}'
+                        label = None if self.hide_conf else f'{self.names[int(cls)]} {conf:.2f}'
                         if crop:
                             file = save_dir / 'crops' / self.names[int(cls)] / self.files[i] if save else None
                             crops.append({'box': box, 'conf': conf, 'cls': cls, 'label': label,
