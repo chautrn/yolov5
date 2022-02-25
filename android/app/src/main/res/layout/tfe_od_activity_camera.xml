@@ -20,8 +20,7 @@
     android:layout_height="match_parent"
     android:background="#00000000">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
@@ -47,6 +46,16 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/tfl2_logo" />
         </androidx.appcompat.widget.Toolbar>
+
+        <Button
+            android:id="@+id/photo_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="100px"
+            android:onClick="onTakePhoto"
+            android:text="Take Photo" />
 
     </RelativeLayout>
 

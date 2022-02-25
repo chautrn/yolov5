@@ -16,6 +16,9 @@
 
 package org.tensorflow.lite.examples.detection;
 
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -30,8 +33,12 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,6 +86,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private MultiBoxTracker tracker;
 
     private BorderedText borderedText;
+
+    private boolean photoTaken = false;
 
     @Override
     public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -212,6 +221,34 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         });
     }
 
+    public void onTakePhoto(View view) {
+        photoTaken = !photoTaken;
+    }
+
+    private String saveToInternalStorage(Bitmap bitmapImage){
+        ContextWrapper cw = new ContextWrapper(getApplicationContext());
+        // path to /data/data/yourapp/app_data/imageDir
+        File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+        // Create imageDir
+        File mypath=new File(directory,"image.jpg");
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(mypath);
+            // Use the compress method on the BitMap object to write image to the OutputStream
+            bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return directory.getAbsolutePath();
+    }
+
     @Override
     protected void processImage() {
         ++timestamp;
@@ -230,11 +267,19 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
         readyForNextImage();
 
+
         final Canvas canvas = new Canvas(croppedBitmap);
         canvas.drawBitmap(rgbFrameBitmap, frameToCropTransform, null);
         // For examining the actual TF input.
         if (SAVE_PREVIEW_BITMAP) {
             ImageUtils.saveBitmap(croppedBitmap);
+        }
+        if (photoTaken) {
+            String imagePath = saveToInternalStorage(croppedBitmap);
+            System.out.println("IMAGE PATH: " + imagePath);
+            Intent intent = new Intent(this, PhotoActivity.class);
+            intent.putExtra("imagePath", imagePath);
+            startActivity(intent);
         }
 
         runInBackground(
@@ -243,10 +288,10 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     public void run() {
                         LOGGER.i("Running detection on image " + currTimestamp);
                         final long startTime = SystemClock.uptimeMillis();
-                        final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
+                        // final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-                        Log.e("CHECK", "run: " + results.size());
+                        // Log.e("CHECK", "run: " + results.size());
 
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
                         final Canvas canvas = new Canvas(cropCopyBitmap);
@@ -265,6 +310,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         final List<Classifier.Recognition> mappedRecognitions =
                                 new LinkedList<Classifier.Recognition>();
 
+/*
                         for (final Classifier.Recognition result : results) {
                             final RectF location = result.getLocation();
                             if (location != null && result.getConfidence() >= minimumConfidence) {
@@ -276,6 +322,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                                 mappedRecognitions.add(result);
                             }
                         }
+*/
 
                         tracker.trackResults(mappedRecognitions, currTimestamp);
                         trackingOverlay.postInvalidate();

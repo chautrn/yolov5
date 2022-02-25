@@ -15,9 +15,15 @@ limitations under the License.
 
 package org.tensorflow.lite.examples.detection.env;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.os.Environment;
+import android.util.Log;
+
+import org.tensorflow.lite.examples.detection.DetectorActivity;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 
@@ -50,8 +56,8 @@ public class ImageUtils {
    *
    * @param bitmap The bitmap to save.
    */
-  public static void saveBitmap(final Bitmap bitmap) {
-    saveBitmap(bitmap, "preview.png");
+  public static String saveBitmap(final Bitmap bitmap) {
+    return saveBitmap(bitmap, "preview.png");
   }
 
   /**
@@ -60,7 +66,7 @@ public class ImageUtils {
    * @param bitmap The bitmap to save.
    * @param filename The location to save the bitmap to.
    */
-  public static void saveBitmap(final Bitmap bitmap, final String filename) {
+  public static String saveBitmap(final Bitmap bitmap, final String filename) {
     final String root =
         Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow";
     LOGGER.i("Saving %dx%d bitmap to %s.", bitmap.getWidth(), bitmap.getHeight(), root);
@@ -80,9 +86,28 @@ public class ImageUtils {
       bitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
       out.flush();
       out.close();
+      return file.getAbsolutePath();
     } catch (final Exception e) {
       LOGGER.e(e, "Exception!");
+      return "error";
     }
+  }
+
+
+  public static String saveImage(Bitmap bitmap, Context ctx) {
+    String fileName = "myImage";//no .png or .jpg needed
+    try {
+      ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+      bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+      FileOutputStream fo = ctx.openFileOutput(fileName, Context.MODE_PRIVATE);
+      fo.write(bytes.toByteArray());
+      // remember close file output
+      fo.close();
+    } catch (Exception e) {
+      e.printStackTrace();
+      fileName = null;
+    }
+    return fileName;
   }
 
   public static void convertYUV420SPToARGB8888(byte[] input, int width, int height, int[] output) {
@@ -216,4 +241,6 @@ public class ImageUtils {
 
     return matrix;
   }
+
 }
+

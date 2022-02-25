@@ -66,6 +66,7 @@ public abstract class CameraActivity extends AppCompatActivity
         Camera.PreviewCallback,
 //        CompoundButton.OnCheckedChangeListener,
         View.OnClickListener {
+
   private static final Logger LOGGER = new Logger();
 
   private static final int PERMISSIONS_REQUEST = 1;
@@ -92,6 +93,7 @@ public abstract class CameraActivity extends AppCompatActivity
   private LinearLayout gestureLayout;
   private BottomSheetBehavior<LinearLayout> sheetBehavior;
 
+  public Context appContext;
   protected TextView frameValueTextView, cropValueTextView, inferenceTimeTextView;
   protected ImageView bottomSheetArrowImageView;
   private ImageView plusImageView, minusImageView;
@@ -122,6 +124,7 @@ public abstract class CameraActivity extends AppCompatActivity
       requestPermission();
     }
 
+    appContext = getApplicationContext();
     threadsTextView = findViewById(R.id.threads);
     currentNumThreads = Integer.parseInt(threadsTextView.getText().toString().trim());
     plusImageView = findViewById(R.id.plus);
